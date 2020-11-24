@@ -1,0 +1,11 @@
+#+TITLE: wip
+
+Example application using Clojure/ClojureScript
+
+This may be a good staring point for your Clojure web app.
+
+Here are some buzzwords: nrepl, re-frame, websocket, sente, compojure,
+shadow-cljs, deps.edn, http-kit, react.
+
+Eval =server.clj= file and run =(start-server)=, then navigate to
+http://localhost:8080/.

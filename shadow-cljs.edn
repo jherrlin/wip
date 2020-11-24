@@ -1,0 +1,11 @@
+{:deps         {:aliases [:dev]}
+ :source-paths ["src"]
+ :builds       {:app
+                {:target            :browser
+                 :asset-path        "/js"
+                 :module-hash-names true
+                 :modules           {:app {:init-fn client.core/init
+                                           :entries [client.core]}}
+                 :output-dir        "resources/public/js"}}
+ :nrepl        {:port       8777
+                :middleware [refactor-nrepl.middleware/wrap-refactor]}}

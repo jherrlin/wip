@@ -1,0 +1,32 @@
+{:paths ["resources" "src"]
+ :deps {org.clojure/clojure {:mvn/version "1.10.1"}
+        org.clojure/clojurescript {:mvn/version "1.10.773"}
+        org.clojure/core.async {:mvn/version "1.3.610"}
+        org.clojure/test.check {:mvn/version "1.1.0"}
+        com.taoensso/timbre {:mvn/version "5.1.0"}
+        yogthos/config {:mvn/version "1.1.7"}
+
+        medley/medley {:mvn/version "1.3.0"}
+        hiccup/hiccup {:mvn/version "1.0.5"}
+
+        clj-http/clj-http {:mvn/version "3.11.0"}
+        cheshire/cheshire {:mvn/version "5.10.0"}
+        nrepl/nrepl {:mvn/version "0.8.3"}
+
+        thheller/shadow-cljs {:mvn/version "2.11.6"}
+        http-kit/http-kit {:mvn/version "2.5.0"}
+        compojure/compojure {:mvn/version "1.6.2"}
+        ring/ring-defaults {:mvn/version "0.3.2"}
+        com.taoensso/sente {:mvn/version "1.16.0"}
+        re-frame/re-frame {:mvn/version "1.1.2"}}
+
+ :aliases {:test {:extra-paths ["test"]
+                  :extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
+                                                          :sha "b6b3193fcc42659d7e46ecd1884a228993441182"}}
+                  :main-opts ["-m" "cognitect.test-runner"]}
+           :dev {:extra-deps {day8.re-frame/re-frame-10x {:mvn/version "0.7.0"}
+                              binaryage/devtools {:mvn/version "1.0.2"}}}
+           :uberjar {:extra-deps {uberdeps {:mvn/version "1.0.2"}}
+                     :main-opts ["-m" "uberdeps.uberjar"]}
+           :outdated {:extra-deps {olical/depot {:mvn/version "2.0.1"}}
+                      :main-opts ["-m" "depot.outdated.main"]}}}
