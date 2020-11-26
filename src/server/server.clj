@@ -65,7 +65,10 @@
    {:style "height: 100%"}
    [:head
     [:meta {:charset "UTF-8"}]
-    [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]]
+    [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
+    (include-css "https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css")
+    ;; (include-css "https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css")
+    ]
    [:body {:style "height: 100%"}
     [:div#app (merge
                {:data-csrf-token (:anti-forgery-token req)}
