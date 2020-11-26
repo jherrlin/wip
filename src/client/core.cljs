@@ -2,14 +2,8 @@
   (:require
    [client.websocket :as websocket]
    [taoensso.sente :as sente :refer [cb-success?]]
-   [re-frame.core :as rf]
-   [reagent.dom :as rd]
-   [taoensso.timbre :as timbre]))
+   [reagent.dom :as rd]))
 
-
-(rf/reg-event-db
- ::initialize-db
- (fn [_ _] {}))
 
 (defn ping-button []
   [:button {:on-click
@@ -29,11 +23,9 @@
    [ping-button]])
 
 (defn ^:dev/after-load mount-root []
-  (rf/clear-subscription-cache!)
   (rd/render [main-panel]
              (.getElementById js/document "app")))
 
 (defn init []
-  (rf/dispatch-sync [::initialize-db])
   (client.websocket/init-websocket)
   (mount-root))

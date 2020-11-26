@@ -1,9 +1,7 @@
 (ns client.websocket
   (:require
    [taoensso.sente :as sente :refer [cb-success?]]
-   [taoensso.timbre :as timbre]
-   [re-frame.core :as rf]
-   [reagent.dom :as rd]))
+   [taoensso.timbre :as timbre]))
 
 
 (declare chsk-send!)
