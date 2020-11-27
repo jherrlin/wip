@@ -6,8 +6,10 @@
    [re-frame.core :as re-frame]
    [client.events :as events]
    [re-frame.db]
+   ["semantic-ui-react" :as semantic-ui]
    [reagent.dom :as reagent]
    [reitit.core :as r]))
+
 
 
 (defn nav [{:keys [router current-route]}]
@@ -41,9 +43,19 @@
     (enable-console-print!)
     (println "dev mode")))
 
+(defn test-ui []
+  [:div
+   [:> semantic-ui/Button
+    {:onClick #(js/console.log "hejsan")}
+    "Hejsan"]])
+
+;; (defn ^:dev/after-load mount-root []
+;;   (reagent/render [router-component {:router router/router}]
+;;                   (.getElementById js/document "app")))
 (defn ^:dev/after-load mount-root []
-  (reagent/render [router-component {:router router/router}]
+  (reagent/render [test-ui]
                   (.getElementById js/document "app")))
+
 
 (defn init []
   (re-frame/clear-subscription-cache!)

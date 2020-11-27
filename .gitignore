@@ -35,6 +35,4 @@ pom.xml.asc
 /ssl
 .DS_Store
 yarn.lock
-package-lock.json
-/package.json
 *.log

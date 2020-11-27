@@ -65,6 +65,7 @@
     [:meta {:charset "UTF-8"}]
     [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
     (include-css "https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css")
+    (include-css "//cdn.jsdelivr.net/npm/semantic-ui@2.4.1/dist/semantic.min.css")
     ;; (include-css "https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css")
     ]
    [:body {:style "height: 100%"}
