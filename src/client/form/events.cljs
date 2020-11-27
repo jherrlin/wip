@@ -5,7 +5,11 @@
 
 
 (def form-events
-  [{:n ::form-value
+  [{:n ::form
+    :e (fn [db [_ form values]]        (assoc-in db [:form form] values))
+    :s (fn [db [_ form]]                 (get-in db [:form form]))}
+
+   {:n ::form-value
     :e (fn [db [_ form attr value]]    (assoc-in db [:form form :values attr] value))
     :s (fn [db [_ form attr]]            (get-in db [:form form :values attr]))}
 

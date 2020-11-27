@@ -21,6 +21,10 @@
       ;; Create a normal links that user can click
       [:a {:href (router/href route-name)} text]])])
 
+(comment
+  (r/route-names router/router)
+  )
+
 (defn router-component [{:keys [router]}]
   (let [current-route @(re-frame/subscribe [::router.events/current-route])]
     [:div
@@ -37,6 +41,9 @@
     (enable-console-print!)
     (println "dev mode")))
 
+(defn ^:dev/after-load mount-root []
+  (reagent/render [router-component {:router router/router}]
+                  (.getElementById js/document "app")))
 
 (defn init []
   (re-frame/clear-subscription-cache!)
@@ -45,5 +52,4 @@
   (dev-setup)
   (router/init-routes!)
   (client.websocket/init-websocket)
-  (reagent/render [router-component {:router router/router}]
-                  (.getElementById js/document "app")))
+  (mount-root))
