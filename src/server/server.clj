@@ -1,6 +1,5 @@
 (ns server.server
   (:require
-   [cheshire.core :as cheshire]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [compojure.core :refer [GET POST defroutes]]
@@ -8,7 +7,6 @@
    [hiccup.page :refer [html5 include-js include-css]]
    [nrepl.server]
    [org.httpkit.server :as httpkit.server]
-   [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]
    [ring.middleware.defaults]
    [ring.middleware.keyword-params :as middleware.keyword-params]
    [ring.middleware.params :as middleware.params]
