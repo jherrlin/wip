@@ -9,3 +9,20 @@ shadow-cljs, deps.edn, http-kit, react.
 
 Eval =server.clj= file and run =(start-server)=, then navigate to
 http://localhost:8080/.
+
+
+
+* Links
+
+  https://react.semantic-ui.com/elements/input/
+  http://shadow-cljs.org/
+  https://shadow-cljs.github.io/docs/UsersGuide.html#js-deps
+  http://reagent-project.github.io/docs/master/reagent.core.html
+  https://cljdoc.org/d/reagent/reagent/1.0.0-alpha2/doc/tutorials/interop-with-react
+  https://github.com/reagent-project/reagent/wiki
+
+  https://github.com/russmatney/starters/blob/master/fullstack/src/fullstack/ui/routes.cljs
+  http://russmatney.com/2020-04-23-reitit-router-in-reframe/
+  https://cljdoc.org/d/metosin/reitit/0.5.10/doc/frontend/browser-integration
+  https://cljdoc.org/d/metosin/reitit/0.5.10/api/reitit.frontend.easy
+  https://purelyfunctional.tv/mini-guide/clojure-routers/
