@@ -6,43 +6,19 @@
    [client.websocket :as websocket]
    [clojure.spec.alpha :as s]
    [re-frame.core :as re-frame]
+   [client.router.events :as router.events]
    [re-frame.db]
    [reagent.dom :as reagent]
    [taoensso.sente :as sente :refer [cb-success?]]
-
-     [reitit.core :as r]
-            [reitit.coercion.spec :as rss]
-            [reitit.frontend :as rf]
-            [reitit.frontend.controllers :as rfc]
-            [reitit.frontend.easy :as rfe]
-   ))
+   [reitit.core :as r]
+   [reitit.coercion.spec :as rss]
+   [reitit.frontend :as rf]
+   [reitit.frontend.controllers :as rfc]
+   [reitit.frontend.easy :as rfe]))
 
 
 (re-frame/reg-event-db ::initialize-db
-  (fn [db _]
-    (if db
-      db
-      {:current-route nil})))
-
-(re-frame/reg-event-fx ::push-state
-  (fn [db [_ & route]]
-    {:push-state route}))
-
-(re-frame/reg-event-db ::navigated
-  (fn [db [_ new-match]]
-    (let [old-match   (:current-route db)
-          controllers (rfc/apply-controllers (:controllers old-match) new-match)]
-      (assoc db :current-route (assoc new-match :controllers controllers)))))
-
-(re-frame/reg-sub ::current-route
-  (fn [db]
-    (:current-route db)))
-
-(re-frame/reg-fx :push-state
-  (fn [route]
-    (apply rfe/push-state route)))
-
-
+  (fn [db _] {}))
 
 
 (defn map-pre [& [m]]
@@ -149,7 +125,9 @@
        ;; I.e (re-frame/dispatch [::events/load-something-with-ajax])
        :start (fn [& params](js/console.log "Entering home page"))
        ;; Teardown can be done here.
-       :stop  (fn [& params] (js/console.log "Leaving home page"))}]}]
+       :stop  (fn [& params]
+                (js/console.log params)
+                (js/console.log "Leaving home page"))}]}]
    ["sub-page1"
     {:name      ::sub-page1
      :view      test-panel
@@ -160,7 +138,7 @@
 
 (defn on-navigate [new-match]
   (when new-match
-    (re-frame/dispatch [::navigated new-match])))
+    (re-frame/dispatch [::router.events/navigated new-match])))
 
 (def router
   (rf/router
@@ -179,14 +157,14 @@
    (for [route-name (r/route-names router)
          :let       [route (r/match-by-name router route-name)
                      text (-> route :data :link-text)]]
-     [:li {:key route-name}
+     [:li {:key route-name :style {:display "inline" :margin-left "1em"}}
       (when (= route-name (-> current-route :data :name))
         "> ")
       ;; Create a normal links that user can click
       [:a {:href (href route-name)} text]])])
 
 (defn router-component [{:keys [router]}]
-  (let [current-route @(re-frame/subscribe [::current-route])]
+  (let [current-route @(re-frame/subscribe [::router.events/current-route])]
     [:div
      [nav {:router router :current-route current-route}]
      (when current-route
@@ -205,6 +183,7 @@
 (defn init []
   (re-frame/clear-subscription-cache!)
   (re-frame/dispatch-sync [::initialize-db])
+  (re-frame/dispatch-sync [::router.events/initialize-router-db])
   (dev-setup)
   (init-routes!)
   (client.websocket/init-websocket)
