@@ -22,7 +22,7 @@
     :s (fn [db [_ form attr]]            (get-in db [:form form :meta attr :visited?]))}
 
    {:n ::form-meta
-    :e (fn [db [_ form attr meta]]     (assoc-in db [:form form :meta attr] meta))
+    :e (fn [db [_ form attr value]]    (assoc-in db [:form form :meta attr] value))
     :s (fn [db [_ form attr]]            (get-in db [:form form :meta attr]))}
 
    {:n ::form-changed?
