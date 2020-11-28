@@ -34,7 +34,9 @@
   (mapv #(get ms %) xs))
 
 (defn add-collection [db [_ collection-name ident xs]]
-  (assoc-in db [:collections collection-name :m] (normalize-collection ident xs)))
+  (-> db
+      (assoc-in [:collections collection-name :m] (normalize-collection ident xs))
+      (assoc-in [:collections collection-name :sorts :default] (mapv ident xs))))
 
 (defn add-sort [db [_ collection-name sort-name sort-fn]]
   (let [xs (vals (get-in db [:collections collection-name :m]))]
@@ -85,6 +87,9 @@
                     (add-sort       [nil :persons :age-asc (partial asc :age :id)])
                     (add-sort       [nil :persons :age-desc (partial desc :age :id)]))]
 
+         (t/is (= col
+                  (get-sort db [nil :persons :default])))
+
          (t/is (= (get-sort db [nil :persons :name-asc])
                   [{:id "3", :name "Charlie", :score {:level 2}, :age 10}
                    {:id "2", :name "Hannah", :score {:level 3}, :age 33}
@@ -104,5 +109,4 @@
                    {:id "1", :name "John", :score {:level 4}, :age 34}]))
          )
        )
-     (t/run-tests)
-     ))
+     (t/run-tests)))
