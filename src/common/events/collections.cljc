@@ -49,14 +49,12 @@
      m
      idents)))
 
-(def events
-  {:collection
-   {:n :collection
+(def collection-events
+  [{:n :collection
     :e add-collection}
-   :sort
    {:n :sort
     :e add-sort
-    :s get-sort}})
+    :s get-sort}])
 
 #?(:clj
    (do
