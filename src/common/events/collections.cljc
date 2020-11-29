@@ -1,6 +1,7 @@
 (ns common.events.collections
   (:require
-   [clojure.spec.alpha :as s]))
+   [clojure.spec.alpha :as s]
+   [clojure.string :as str]))
 
 
 (s/def ::ident (s/or :k keyword? :f fn?))
@@ -36,7 +37,8 @@
 (defn add-collection [db [_ collection-name ident xs]]
   (-> db
       (assoc-in [:collections collection-name :m] (normalize-collection ident xs))
-      (assoc-in [:collections collection-name :sorts :default] (mapv ident xs))))
+      (assoc-in [:collections collection-name :sorts :default] (mapv ident xs))
+      (assoc-in [:collections collection-name :ops :default] (mapv ident xs))))
 
 (defn add-sort [db [_ collection-name sort-name sort-fn]]
   (let [xs (vals (get-in db [:collections collection-name :m]))]
@@ -49,62 +51,54 @@
      m
      idents)))
 
+(defn op
+  "Can run a collection through a transducer `xf` and a `psort` function.
+  Return a collection of entity `ident`s.
+
+  - `ident`  The identifier of each entity in the collection. Default `:id`.
+  - `xf`     Transducer, optional.
+  - `psort`  Partial sorting function, optional.
+  - `coll`   Collection to operate on"
+  [{:keys [xf psort ident]
+    :or   {ident :id}}
+   coll]
+  {:pre [(s/valid? coll? coll)]}
+  (cond->> coll
+    xf      (into [] xf)
+    psort   (psort)
+    :always (mapv ident)))
+
+(defn psort-by
+  "Partial sort by."
+  [attribute & [compare-fn]]
+  (partial sort-by attribute (or compare-fn #(compare %1 %2))))
+
+(defn psort-by-asc
+  "Partial sort by with ascending order."
+  [attribute]
+  (psort-by attribute #(compare %1 %2)))
+
+(defn psort-by-desc
+  "Partial sort by with descending order."
+  [attribute]
+  (psort-by attribute #(compare %2 %1)))
+
+(defn add-op
+  [db [_ {:keys [coll-name op-name xf psort ident] :as m} coll]]
+  {:pre [(s/valid? (complement nil?) coll-name)
+         (s/valid? (complement nil?) op-name)
+         (s/valid? seq coll)]}
+  (assoc-in db [:collections coll-name :ops op-name] (op m coll)))
+
+(defn get-op
+  [db [_ {:keys [coll-name op-name] :as m}]]
+  (let [m      (get-in db [:collections coll-name :m])
+        idents (get-in db [:collections coll-name :ops op-name])]
+    (realise-sort m idents)))
+
 (def collection-events
   [{:n :collection
     :e add-collection}
    {:n :sort
     :e add-sort
     :s get-sort}])
-
-#?(:clj
-   (do
-     (require '[clojure.test :as t])
-     (t/deftest collection-events
-       (let [col [{:id    "1"
-                   :name  "John"
-                   :score {:level 4}
-                   :age   34}
-                  {:id    "2"
-                   :name  "Hannah"
-                   :score {:level 3}
-                   :age   33}
-                  {:id    "3"
-                   :name  "Charlie"
-                   :score {:level 2}
-                   :age   10}
-                  {:id    "4"
-                   :name  "Leo"
-                   :age   19
-                   :score {:level 1}}]
-             db (-> {}
-                    (add-collection [nil :persons :id col])
-                    (add-sort       [nil :persons :name-asc (partial asc :name :id)])
-                    (add-sort       [nil :persons :name-desc (partial desc :name :id)])
-                    (add-sort       [nil :persons :level-asc (partial asc (comp :level :score) :id)])
-                    (add-sort       [nil :persons :level-desc (partial desc (comp :level :score) :id)])
-                    (add-sort       [nil :persons :age-asc (partial asc :age :id)])
-                    (add-sort       [nil :persons :age-desc (partial desc :age :id)]))]
-
-         (t/is (= col
-                  (get-sort db [nil :persons :default])))
-
-         (t/is (= (get-sort db [nil :persons :name-asc])
-                  [{:id "3", :name "Charlie", :score {:level 2}, :age 10}
-                   {:id "2", :name "Hannah", :score {:level 3}, :age 33}
-                   {:id "1", :name "John", :score {:level 4}, :age 34}
-                   {:id "4", :name "Leo", :age 19, :score {:level 1}}]))
-
-         (t/is (= (get-sort db [nil :persons :level-desc])
-                  [{:id "1", :name "John", :score {:level 4}, :age 34}
-                   {:id "2", :name "Hannah", :score {:level 3}, :age 33}
-                   {:id "3", :name "Charlie", :score {:level 2}, :age 10}
-                   {:id "4", :name "Leo", :age 19, :score {:level 1}}]))
-
-         (t/is (= (get-sort db [nil :persons :age-asc])
-                  [{:id "3", :name "Charlie", :score {:level 2}, :age 10}
-                   {:id "4", :name "Leo", :age 19, :score {:level 1}}
-                   {:id "2", :name "Hannah", :score {:level 3}, :age 33}
-                   {:id "1", :name "John", :score {:level 4}, :age 34}]))
-         )
-       )
-     (t/run-tests)))
