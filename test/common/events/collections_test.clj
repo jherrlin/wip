@@ -3,53 +3,7 @@
             [clojure.string :as str]
             [clojure.test :as t]))
 
-
-(t/deftest collection-events
-       (let [col [{:id    "1"
-                   :name  "John"
-                   :score {:level 4}
-                   :age   34}
-                  {:id    "2"
-                   :name  "Hannah"
-                   :score {:level 3}
-                   :age   33}
-                  {:id    "3"
-                   :name  "Charlie"
-                   :score {:level 2}
-                   :age   10}
-                  {:id    "4"
-                   :name  "Leo"
-                   :age   19
-                   :score {:level 1}}]
-             db (-> {}
-                    (sut/add-collection [nil :persons :id col])
-                    (sut/add-sort       [nil :persons :name-asc (partial sut/asc :name :id)])
-                    (sut/add-sort       [nil :persons :name-desc (partial sut/desc :name :id)])
-                    (sut/add-sort       [nil :persons :level-asc (partial sut/asc (comp :level :score) :id)])
-                    (sut/add-sort       [nil :persons :level-desc (partial sut/desc (comp :level :score) :id)])
-                    (sut/add-sort       [nil :persons :age-asc (partial sut/asc :age :id)])
-                    (sut/add-sort       [nil :persons :age-desc (partial sut/desc :age :id)]))]
-
-         (t/is (= col
-                  (sut/get-sort db [nil :persons :default])))
-
-         (t/is (= (sut/get-sort db [nil :persons :name-asc])
-                  [{:id "3", :name "Charlie", :score {:level 2}, :age 10}
-                   {:id "2", :name "Hannah", :score {:level 3}, :age 33}
-                   {:id "1", :name "John", :score {:level 4}, :age 34}
-                   {:id "4", :name "Leo", :age 19, :score {:level 1}}]))
-
-         (t/is (= (sut/get-sort db [nil :persons :level-desc])
-                  [{:id "1", :name "John", :score {:level 4}, :age 34}
-                   {:id "2", :name "Hannah", :score {:level 3}, :age 33}
-                   {:id "3", :name "Charlie", :score {:level 2}, :age 10}
-                   {:id "4", :name "Leo", :age 19, :score {:level 1}}]))
-
-         (t/is (= (sut/get-sort db [nil :persons :age-asc])
-                  [{:id "3", :name "Charlie", :score {:level 2}, :age 10}
-                   {:id "4", :name "Leo", :age 19, :score {:level 1}}
-                   {:id "2", :name "Hannah", :score {:level 3}, :age 33}
-                   {:id "1", :name "John", :score {:level 4}, :age 34}]))))
+;; (remove-ns 'common.events.collections-test)
 
 (t/deftest op-get-and-set
   (let [coll [{:id "1" :name "John" :score {:level 4} :genre :human :age 34}
@@ -115,3 +69,59 @@
                   ["1" "2" "4" "3" "5"]))
          )
        )
+
+(t/deftest update-and-remove-in-coll
+  (let [coll [{:id "1" :name "John" :score {:level 4} :genre :human :age 34}
+              {:id "2" :name "Hannah" :score {:level 3} :genre :human :age 33}
+              {:id "3" :name "Charlie" :score {:level 2} :genre :pet :age 10}
+              {:id "4" :name "Leo" :score {:level 1} :genre :pet :age 19}
+              {:id "5" :name "Peps" :score {:level 0} :genre :human :age 3}]
+        db (-> {}
+               (sut/add-collection [nil :persons :id coll])
+               (sut/update-in-coll [nil :persons ["1" :name] "JOHN"])
+               (sut/remove-in-coll [nil :persons "5"])
+               (sut/add-op [nil {:coll-name [:persons]
+                                 :xf (filter (comp #{:human} :genre))} coll])
+               (sut/get-op [nil {:coll-name [:persons]}]))]
+    (t/is (= db
+             [{:id "1", :name "JOHN", :score {:level 4}, :genre :human, :age 34}
+              {:id "2", :name "Hannah", :score {:level 3}, :genre :human, :age 33}]))
+    db)
+  )
+
+
+(t/deftest update-organized-test
+  (let [coll [{:id "1" :name "John" :score {:level 4} :genre :human :age 34}
+              {:id "2" :name "Hannah" :score {:level 3} :genre :human :age 33}
+              {:id "3" :name "Charlie" :score {:level 2} :genre :pet :age 10}
+              {:id "4" :name "Leo" :score {:level 1} :genre :pet :age 19}
+              {:id "5" :name "Peps" :score {:level 0} :genre :human :age 3}]
+        db   (-> {}
+                 (sut/add-collection [nil :persons :id coll])
+                 (sut/add-op [nil {:coll-name :persons
+                                   :op-name   :humans-by-level
+                                   :xf        (filter (comp #{:human} :genre))
+                                   :psort     (sut/psort-by-desc (comp :level :score))}
+                              coll])
+                 (sut/add-op [nil {:coll-name :persons
+                                   :op-name   :pets-starting-with-c
+                                   :xf        (filter #(str/starts-with? (:name %) "C"))}
+                              coll])
+                 (sut/add-op [nil {:coll-name :persons
+                                   :op-name   :kids
+                                   :xf        (filter #(and (> 14 (:age %))
+                                                            (= :human (:genre %))))}
+                              coll])
+                 (sut/remove-in-coll [nil :persons "5"])
+                 (sut/remove-in-coll [nil :persons "3"])
+                 (sut/update-organized [nil :persons]))]
+
+    (t/is (empty? (sut/get-op db [nil {:coll-name [:persons]
+                         :op-name :pets-starting-with-c}])))
+
+    (t/is (= (sut/get-op db [nil {:coll-name [:persons]}])
+             [{:id "1", :name "John", :score {:level 4}, :genre :human, :age 34}
+              {:id "2", :name "Hannah", :score {:level 3}, :genre :human, :age 33}
+              {:id "4", :name "Leo", :score {:level 1}, :genre :pet, :age 19}]))
+    )
+  )
