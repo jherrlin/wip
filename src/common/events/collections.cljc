@@ -1,7 +1,6 @@
 (ns common.events.collections
   (:require
-   [clojure.spec.alpha :as s]
-   [clojure.string :as str]))
+   [clojure.spec.alpha :as s]))
 
 
 (s/def ::ident (s/or :k keyword? :f fn?))
@@ -11,49 +10,11 @@
   {:pre [(s/valid? ::ident ident)]}
   (reduce (fn [m x] (assoc m (ident x) x)) {} xs))
 
-(s/def ::attribute-to-sort (s/or :k keyword? :f fn?))
-(s/def ::compare-fn ::attribute-to-sort)
-(s/def ::ident ::attribute-to-sort)
-(s/def ::ms (s/coll-of map?))
-(defn sort-and-reduce-to-ident
-  ([attribute-to-sort ident ms]
-   (sort-and-reduce-to-ident attribute-to-sort #(compare %1 %2) ident ms))
-  ([attribute-to-sort compare-fn ident ms]
-   {:pre [(s/valid? ::attribute-to-sort attribute-to-sort)
-          (s/valid? ::compare-fn compare-fn)
-          (s/valid? ::ident ident)
-          (s/valid? ::ms ms)]}
-   (->> ms (sort-by attribute-to-sort compare-fn) (mapv ident))))
-
-(defn asc [sort-attribute ident xs]
-  (sort-and-reduce-to-ident sort-attribute #(compare %1 %2) ident xs))
-
-(defn desc [sort-attribute ident xs]
-  (sort-and-reduce-to-ident sort-attribute #(compare %2 %1) ident xs))
-
-(defn realise-sort [ms xs]
+(defn realise-idents [ms xs]
   (->> xs
        (map #(get ms %))
        (remove nil?)
        (into [])))
-
-(defn add-collection [db [_ collection-name ident xs]]
-  (-> db
-      (assoc-in (flatten [:collections collection-name :sorts :default]) (mapv ident xs))
-      (assoc-in (flatten [:collections collection-name :values]) (normalize-collection ident xs))
-      (assoc-in (flatten [:collections collection-name :organized :default]) (mapv ident xs))
-      (assoc-in (flatten [:collections collection-name :fns       :default]) (partial mapv ident))))
-
-(defn add-sort [db [_ collection-name sort-name sort-fn]]
-  (let [xs (vals (get-in db [:collections collection-name :m]))]
-    (assoc-in db (flatten [:collections collection-name :sorts sort-name]) (sort-fn xs))))
-
-(defn get-sort [db [_ collection-name sort-name]]
-  (let [m      (get-in db (flatten [:collections collection-name :m]))
-        idents (get-in db (flatten [:collections collection-name :sorts sort-name]))]
-    (realise-sort
-     m
-     idents)))
 
 (defn op
   "Can run a collection through a transducer `xf` and a `psort` function.
@@ -98,18 +59,27 @@
       (assoc-in (flatten [:collections coll-name :organized op-name]) (op m coll))
       (assoc-in (flatten [:collections coll-name :fns       op-name]) (partial op m))))
 
+(defn add-collection [db [_ {:keys [coll-name ident coll]}]]
+  (-> db
+      (assoc-in (flatten [:collections coll-name :values]) (normalize-collection ident coll))
+      (assoc-in (flatten [:collections coll-name :organized :default]) (mapv ident coll))
+      (assoc-in (flatten [:collections coll-name :fns       :default]) (partial mapv ident))))
+
 (defn get-op
   [db [_ {:keys [coll-name op-name]
           :or {op-name :default}}]]
   (let [m      (get-in db (flatten [:collections coll-name :values]))
         idents (get-in db (flatten [:collections coll-name :organized op-name]))]
-    (realise-sort m idents)))
+    (realise-idents m idents)))
 
 (defn update-in-coll [db [_ coll-name attr value]]
   (assoc-in db (flatten [:collections coll-name :values attr]) value))
 
 (defn remove-in-coll [db [_ coll-name attr]]
   (update-in db (flatten [:collections coll-name :values]) dissoc attr))
+
+(defn get-in-coll [db [_ coll-name attr]]
+  (get-in db (flatten [:collections coll-name :values attr])))
 
 (defn run-fns-on-xs [fns xs]
   (reduce-kv
@@ -131,18 +101,17 @@
 
 (def collection-events
   [{:n :collection
-    :e add-collection}
-   {:n :sort
-    :e add-sort
-    :s get-sort}])
+    :e add-collection
+    :s get-op}
 
-(let [coll [{:id 1
-             :name "A Movie 1"}
-            {:id 2
-             :name "A Movie 2"}
-            {:id 3
-             :name "A Movie 3"}]]
-  (-> {}
-      (add-collection [nil [:movie-project "A"] :id coll])
-      (remove-in-coll [nil [:movie-project "A"] 3])
-      ))
+   {:n :update-in-collection
+    :e update-in-coll}
+
+   {:n :remove-in-collection
+    :e remove-in-coll}
+
+   {:n :get-in-collection
+    :s get-in-coll}
+
+   {:n :collection-update
+    :e update-organized}])
