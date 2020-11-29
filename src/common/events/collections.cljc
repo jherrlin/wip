@@ -1,3 +1,32 @@
+;; Namespace for working with collections in a re-frame app.
+;;
+;; There are three important locations in the structures:
+;; - `:values`     Values are a map where the key is the `ident` and the value
+;;                 is the entity.
+;; - `:organized`  Collections with `idents`.
+;; - `:fns`        Partial functions that can be used on `:values` to get a new
+;;                 `:organized` collection.
+;;
+;; Example structure
+;; {:collections
+;;  {:persons
+;;   {:values
+;;    {"1" {:id "1", :name "John", :score {:level 4}, :genre :human, :age 34},
+;;     "2" {:id "2", :name "Hannah", :score {:level 3}, :genre :human, :age 33},
+;;     "3" {:id "3", :name "Charlie", :score {:level 2}, :genre :pet, :age 10},
+;;     "4" {:id "4", :name "Leo", :score {:level 1}, :genre :pet, :age 19},
+;;     "5" {:id "5", :name "Peps", :score {:level 0}, :genre :human, :age 3}},
+;;    :organized
+;;    {:default ["1" "2" "3" "4" "5"],
+;;     :humans-by-level ["1" "2" "5"],
+;;     :pets-starting-with-c ["3"],
+;;     :kids ["5"]},
+;;    :fns
+;;    {:default #function[clojure.core/partial/fn--5839],
+;;     :humans-by-level #function[clojure.core/partial/fn--5839],
+;;     :pets-starting-with-c #function[clojure.core/partial/fn--5839],
+;;     :kids #function[clojure.core/partial/fn--5839]}}}}
+;;
 (ns common.events.collections
   (:require
    [clojure.spec.alpha :as s]))
