@@ -117,3 +117,11 @@
              ident))
     db)
   )
+
+(t/deftest all-idents
+  (let [base {:location [:family]}
+        db (sut/add-entities {} (merge base {:ident :id :entities coll}))]
+    (t/is (= (sut/get-sequence db (merge base {:selector :all-idents}))
+             ["1" "2" "3" "4" "5"]))
+    db)
+  )

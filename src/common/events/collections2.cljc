@@ -128,7 +128,9 @@
 (defn add-entities [db {:keys [location entities ident] :as m}]
   (-> db
       (add-ident m)
-      (assoc-in (flatten [:collections location :entities]) (normalize-collection ident entities))))
+      (assoc-in (flatten [:collections location :entities]) (normalize-collection ident entities))
+      (assoc-in (flatten [:collections location :transformers :all-idents]) (transformer {}))
+      (run-all-transformers m)))
 
 (defn get-entities [db {:keys [location selector]}]
   (let [{:keys [entities sequences]}
