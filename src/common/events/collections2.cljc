@@ -6,6 +6,13 @@
 ;; `run-all-transformers`  [db {:keys [location]}]
 ;; `run-transformer`       [db {:keys [location selector]}]
 ;;
+;; Input collection example:
+;; [{:id "1" :name "John" :score {:level 4} :genre :human :age 34}
+;;  {:id "2" :name "Hannah" :score {:level 3} :genre :human :age 33}
+;;  {:id "3" :name "Charlie" :score {:level 2} :genre :pet :age 10}
+;;  {:id "4" :name "Leo" :score {:level 1} :genre :pet :age 19}
+;;  {:id "5" :name "Peps" :score {:level 0} :genre :human :age 3}]
+;;
 ;; Example datastructure:
 ;; {:collections
 ;;  {:family
