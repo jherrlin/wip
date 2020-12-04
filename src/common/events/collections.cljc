@@ -39,9 +39,11 @@
   {:pre [(s/valid? ::ident ident)]}
   (reduce (fn [m x] (assoc m (ident x) x)) {} xs))
 
-(defn realise-idents [ms xs]
+(defn realise-idents [m xs]
+  {:pre [(s/valid? coll? xs)
+         (s/valid? map? m)]}
   (->> xs
-       (map #(get ms %))
+       (map #(get m %))
        (remove nil?)
        (into [])))
 
