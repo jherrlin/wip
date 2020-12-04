@@ -47,7 +47,29 @@
   [:div
    [:> semantic-ui/Button
     {:onClick #(js/console.log "hejsan")}
-    "Hejsan"]])
+    "Hejsan"]
+   [:> semantic-ui/Search
+    {
+     ;; :value "H"
+     ;; :resultRenderer (fn [x]
+     ;;                   [:> semantic-ui/Search.Result
+     ;;                    {:title "KUKEN"}
+     ;;                    ])
+     :onResultSelect (fn [SyntheticEvent data]
+                       (let [obj (js->clj data :keywordize-keys true)]
+                         (js/console.log obj)
+                         (js/console.log (:result obj))))
+     :results [{:title "Sweden"
+                }
+               {:title "China"
+                :description "Country"
+                }
+               {:title "Norway"
+                }
+               ]}]
+   ])
+
+
 
 ;; (defn ^:dev/after-load mount-root []
 ;;   (reagent/render [router-component {:router router/router}]
